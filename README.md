@@ -2,6 +2,7 @@
 A Japanese teaching Slackbot that runs nicely on a raspberry pi
 
 # Goals:  
+  0) split the slack api token out of the script so its easier to distribute/alter without having to edit the file. 
   1) Split GallowayBot into different channels so each channel can have its own instance of the quiz. That way you can add Galloway Sensei to a private channel and your answer dont effect anyone else who also has a private channel with her.
   2) Add the ability to edit answers so you dont have to keep typing @<BotName>
   3) Allow GallowayBot to give either the hiragana or the sound and ask for the other version
