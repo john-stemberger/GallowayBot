@@ -4,6 +4,8 @@ import time
 import random
 from slackclient import SlackClient
 
+API_KEY_FILE = "slack_api_key.txt"
+
 MAX_TRIES = 3
 questionIndex = 15
 tries=0
@@ -19,6 +21,7 @@ u'\u3084',            u'\u3086',            u'\u3088',
 u'\u3089', u'\u308A', u'\u308B', u'\u308C', u'\u308D', 
 u'\u308F',            u'\u3092',            u'\u3093', 
 ]
+
 romanji=["a", "i", "u", "e", "o", 
 "ka", "ki",  "ku",  "ke", "ko", 
 "sa", "shi", "su",  "se", "so", 
@@ -31,7 +34,8 @@ romanji=["a", "i", "u", "e", "o",
 "wa", "wo", "n"]
 
 def run() :
-	slack_client = SlackClient("<insert your slack api key here>")
+	lines = [line.rstrip('\n') for line in open(API_KEY_FILE)]
+	slack_client = SlackClient(lines[0])
 
 	# Fetch your Bot's User ID
 	user_list = slack_client.api_call("users.list")
@@ -42,14 +46,14 @@ def run() :
 
 	# Start connection
 	if slack_client.rtm_connect():
-		print "Connected!"
+		print("Connected!")
 		for i in range(0, len(hiragana)):
-			print hiragana[i] + " = " + romanji[i]
+			print (hiragana[i] + " = " + romanji[i])
 		while True:
 			for message in slack_client.rtm_read():
 				# print "Message received: %s" % json.dumps(message, indent=2)
 				if 'text' in message and message['text'].startswith("<@%s>" % slack_user_id):
-					print "Message received: %s" % json.dumps(message, indent=2)
+					print ("Message received: %s" % json.dumps(message, indent=2))
 					message_text = message['text'].\
 						split("<@%s>" % slack_user_id)[1].\
 						strip()
