@@ -11,5 +11,5 @@ A Japanese teaching Slackbot that runs nicely on a raspberry pi
   6) *integrate with Wanikani to all you to study your kanji?
   7) Add Kanji to the list of things you can study 
   8) Add a Spaces Repetition System (SRS) similar to Wanikani and anki so you only study what you are learning or about to forget
-  9) ~~Allow the dropping of Galloway Sensei's name if the chat is a direct message and she is the only other member ~~
+  9) ~~Allow the dropping of Galloway Sensei's name if the chat is a direct message and she is the only other member~~
   
