@@ -54,6 +54,7 @@ class Classroom:
 
 API_KEY_FILE = "slack_api_key.txt"
 
+MY_NAME = "gallowaysensei"
 MAX_TRIES = 3
 classrooms = {}
 questionIndex = 15
@@ -82,26 +83,41 @@ romanji=["a", "i", "u", "e", "o",
 "ra", "ri",  "ru",  "re", "ro", 
 "wa", "wo", "n"]
 
+def isMesageToMe(message):
+	if 'user' in message and message['user'] == slack_user_id:
+		return False
+	if 'type' in message and message['type'] == 'message':
+		if 'text' in message and message['text'].startswith("<@%s>" % slack_user_id):
+			return True
+		if 'channel' in message and message['channel'].startswith('D'):
+			return True
+	return False
+
+def extractMessage(message): 
+	message_text = message['text']
+	if message['text'].startswith("<@%s>" % slack_user_id):
+		message_text = message['text'].\
+			split("<@%s>" % slack_user_id)[1].\
+			strip()
+	return message_text
+
 lines = [line.rstrip('\n') for line in open(API_KEY_FILE)]
 slack_client = SlackClient(lines[0])
 
 # Fetch your Bot's User ID
 user_list = slack_client.api_call("users.list")
 for user in user_list.get('members'):
-	if user.get('name') == "pibot":
+	if user.get('name') == MY_NAME:
 		slack_user_id = user.get('id')
 		break
 
 # Start connection
 if slack_client.rtm_connect():
 	print("Connected!")
-	for i in range(0, len(hiragana)):
-		print (hiragana[i] + " = " + romanji[i])
 	while True:
 		for message in slack_client.rtm_read():
-			# print "Message received: %s" % json.dumps(message, indent=2)
-			if 'text' in message and message['text'].startswith("<@%s>" % slack_user_id):
-				print ("Message received: %s" % json.dumps(message, indent=2))
+			if isMesageToMe(message):
+				print "Message received: %s" % json.dumps(message, indent=2)
 				if message['channel'] in classrooms.keys():
 					print ("passing message to classroom")
 					room = classrooms[message['channel']]
@@ -110,9 +126,7 @@ if slack_client.rtm_connect():
 					room = Classroom()
 					classrooms[message['channel']] = room
 
-				message_text = message['text'].\
-					split("<@%s>" % slack_user_id)[1].\
-					strip()
+				message_text = extractMessage(message)
 				room.processMessage(slack_client, message['channel'], message_text)
 
 		time.sleep(1)
