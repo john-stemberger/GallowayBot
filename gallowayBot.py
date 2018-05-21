@@ -6,15 +6,77 @@ from slackclient import SlackClient
 
 class Classroom:
 	def __init__(self):
-		self.questionIndex = 15
+		self.questions = None;
+		self.answers = [];
+		self.questionIndex = -1
 		self.tries=0
-		self.refreshQuestion()
 
-	def processMessage(self, slack_client, channelName, message_text):
-		if re.match(r'quiz me', message_text, re.IGNORECASE):
+	def processClassroomSetup(self, slack_client, channelName, message_text):
+		print "processClassroomSetup " + message_text
+		if self.questions == None:
+			print "Classroom Introduction"
+			self.questions = [];
+			slack_client.api_call(
+				"chat.postMessage",
+				channel=channelName,
+				text="Hello and welcome to my Classroom\n" + 
+				      "What would you like to practice today?\n" + 
+				      "1 - Hiragana\n" + 
+				      "2 - Katakana\n" + 
+				      "3 - Hiragana & Katakana\n" + 
+				      "Make sure you say goodbye to me before you leave class",
+				as_user=True)
+		elif message_text == "1":
+			print "Studying Hiragana"
+			self.questions.extend(hiragana)
+			self.answers.extend(romanji)
 			self.refreshQuestion()
 			self.postNewQuestion(slack_client, channelName)
-		elif romanji[self.questionIndex].lower() == message_text.lower(): 
+		elif message_text == "2":
+			print "Studying Katakana"
+			self.questions.extend(katakana)
+			self.answers.extend(romanji)
+			self.refreshQuestion()
+			self.postNewQuestion(slack_client, channelName)
+		elif message_text == "3":
+			print "Studying Hiragana & Katakana"
+			self.questions.extend(hiragana)
+			self.questions.extend(katakana)
+			self.answers.extend(romanji) # one set for hiragana
+			self.answers.extend(romanji) # one set for katakana
+			self.refreshQuestion()
+			self.postNewQuestion(slack_client, channelName)
+		else:
+			print "Classroom Introduction Take 2"
+			slack_client.api_call(
+				"chat.postMessage",
+				channel=channelName,
+				text="Sorry, I did not understand that\n" + 
+				      "What would you like to practice today?\n" + 
+				      "1 - Hiragana\n" + 
+				      "2 - Katakana\n" + 
+				      "3 - Hiragana & Katakana\n" + 
+				      "Make sure you say goodbye to me before you leave class",
+				as_user=True)
+
+	def processMessage(self, slack_client, channelName, message_text):
+		print "processMessage: " + message_text
+		if self.questionIndex == -1:
+			print "processMessage - setup"
+			self.processClassroomSetup(slack_client, channelName, message_text)
+		elif re.match(r'goodbye', message_text, re.IGNORECASE):
+			print "processMessage - tearDown"
+			slack_client.api_call(
+				"chat.postMessage",
+				channel=channelName,
+				text="Bye",
+				as_user=True)
+			self.questions = None;
+			self.answers = [];
+			self.questionIndex = -1
+			self.tries=0
+		elif self.answers[self.questionIndex].lower() == message_text.lower(): 
+			print "processMessage - answer correct"
 			slack_client.api_call(
 				"chat.postMessage",
 				channel=channelName,
@@ -23,6 +85,7 @@ class Classroom:
 			self.refreshQuestion()
 			self.postNewQuestion(slack_client, channelName)
 		elif self.tries +1< MAX_TRIES:
+			print "processMessage - answer incorrect"
 			self.tries = self.tries + 1
 			slack_client.api_call(
 				"chat.postMessage",
@@ -31,16 +94,17 @@ class Classroom:
 				as_user=True)
 			self.postNewQuestion(slack_client, channelName)
 		else:
+			print "processMessage - answer incorrect take 2"
 			slack_client.api_call(
 				"chat.postMessage",
 				channel=channelName,
-				text="Sorry, the correct answer is " + romanji[self.questionIndex],
+				text="Sorry, the correct answer is " + self.answers[self.questionIndex],
 				as_user=True)
 			self.refreshQuestion()
 			self.postNewQuestion(slack_client, channelName)
 
 	def postNewQuestion(self, slack_client, channelName): 
-		question = "".join(["What is the sound that ", hiragana[self.questionIndex], " makes?"])
+		question = "".join(["What is the sound that ", self.questions[self.questionIndex], " makes?"])
 		slack_client.api_call(
 			"chat.postMessage",
 			channel=channelName,
@@ -48,7 +112,7 @@ class Classroom:
 			as_user=True)
 	
 	def refreshQuestion(self): 
-		self.questionIndex = random.randint(0, len(hiragana)-1)
+		self.questionIndex = random.randint(0, len(self.questions)-1)
 		self.tries = 0;
 
 
@@ -71,6 +135,19 @@ u'\u3084',            u'\u3086',            u'\u3088',
 u'\u3089', u'\u308A', u'\u308B', u'\u308C', u'\u308D', 
 u'\u308F',            u'\u3092',            u'\u3093', 
 ]
+
+katakana=[u'\u30A2', u'\u30A4', u'\u30A6', u'\u30A8', u'\u30aa', 
+u'\u30AB', u'\u30AD', u'\u30AF', u'\u30B1', u'\u30B3', 
+u'\u30B5', u'\u30B7', u'\u30B9', u'\u30BB', u'\u30BD', 
+u'\u30BF', u'\u30C1', u'\u30C4', u'\u30C6', u'\u30C8', 
+u'\u30CA', u'\u30CB', u'\u30CC', u'\u30CD', u'\u30CE', 
+u'\u30CF', u'\u30D2', u'\u30D5', u'\u30D8', u'\u30DB', 
+u'\u30DE', u'\u30DF', u'\u30E0', u'\u30E1', u'\u30E2', 
+u'\u30E4',            u'\u30E6',            u'\u30E8', 
+u'\u30E9', u'\u30EA', u'\u30EB', u'\u30EC', u'\u30ED', 
+u'\u30EF',            u'\u30F2',            u'\u30f3', 
+]
+
 
 romanji=["a", "i", "u", "e", "o", 
 "ka", "ki",  "ku",  "ke", "ko", 
