@@ -7,7 +7,7 @@ A Japanese teaching Slackbot that runs nicely on a raspberry pi
   2) Add the ability to edit answers so you dont have to keep typing @<BotName>
   3) Allow GallowayBot to give either the hiragana or the sound and ask for the other version
   4) Add Voiced sounds
-  5) Add Katakana and the ability to set a preference for what you want to study (Hiragana, Katakana, both)
+  5) ~~Add Katakana and the ability to set a preference for what you want to study (Hiragana, Katakana, both)~~
   6) *integrate with Wanikani to all you to study your kanji?
   7) Add Kanji to the list of things you can study 
   8) Add a Spaces Repetition System (SRS) similar to Wanikani and anki so you only study what you are learning or about to forget
